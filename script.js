@@ -16,6 +16,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// **Test 5: Check Connection to Firebase**
+// Attempt to write a test message to Firebase
+const testRef = ref(db, 'testConnection');
+set(testRef, { message: "Firebase is connected!" })
+  .then(() => {
+    console.log("Successfully connected to Firebase and wrote test data.");
+  })
+  .catch((error) => {
+    console.error("Error writing to Firebase: ", error);
+  });
+
 // Add Customer Form Submission
 const addCustomerForm = document.getElementById('addCustomerForm');
 addCustomerForm.addEventListener('submit', function (e) {
