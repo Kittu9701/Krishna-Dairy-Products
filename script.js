@@ -29,7 +29,7 @@ addCustomerForm.addEventListener('submit', function (e) {
     .then(() => {
       alert('Customer added successfully!');
       addCustomerForm.reset();
-      fetchCustomers();
+      fetchCustomers(); // Ensure dropdown updates immediately
     })
     .catch(error => console.error("Error: ", error));
 });
@@ -48,6 +48,8 @@ function fetchCustomers() {
       option.textContent = customer.name;
       customerList.appendChild(option);
     });
+  }, {
+    onlyOnce: true // Ensure it fetches only once and updates
   });
 }
 
@@ -75,7 +77,7 @@ milkCollectionForm.addEventListener('submit', function (e) {
     .catch(error => console.error("Error: ", error));
 });
 
-// Fetch and Display Milk Records
+// Fetch and Display Milk Records on Page Load
 function fetchMilkRecords() {
   const tableBody = document.querySelector('#customerTable tbody');
   tableBody.innerHTML = '';
@@ -96,13 +98,15 @@ function fetchMilkRecords() {
   });
 }
 
+// Fetch and Display Data on Page Load
+document.addEventListener("DOMContentLoaded", function () {
+  fetchCustomers();
+  fetchMilkRecords();
+});
+
 // Payment Calculation Logic
 function calculatePayment(quantity, fatContent) {
   const baseRate = 50; // Base rate per liter
   const fatMultiplier = fatContent / 100; // Adjust payment based on fat content
   return quantity * baseRate * (1 + fatMultiplier);
 }
-
-// Initialize Data Fetching
-fetchCustomers();
-fetchMilkRecords();
