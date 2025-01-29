@@ -1,119 +1,107 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
-import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-database.js";
+// Import Firebase and Firestore
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
 
-// Firebase configuration
+// Your Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyD0kXfsV...", // Replace with your actual key
+  apiKey: "AIzaSyD0kXfsVqMKDmpqRI8fLmHVbNSDGR7jZBw",
   authDomain: "krishna-dairy-products-1b024.firebaseapp.com",
-  databaseURL: "https://krishna-dairy-products-1b024-default-rtdb.firebaseio.com/",
   projectId: "krishna-dairy-products-1b024",
-  storageBucket: "krishna-dairy-products-1b024.appspot.com",
+  storageBucket: "krishna-dairy-products-1b024.firebasestorage.app",
   messagingSenderId: "38817783657",
-  appId: "1:38817783657:web:5a86fa2694d3bee48ee7f8"
+  appId: "1:38817783657:web:5a86fa2694d3bee48ee7f8",
+  measurementId: "G-9LG57Q29Y4"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getFirestore(app);
 
-// **Test 5: Check Connection to Firebase**
-// Attempt to write a test message to Firebase
-const testRef = ref(db, 'testConnection');
-set(testRef, { message: "Firebase is connected!" })
-  .then(() => {
-    console.log("Successfully connected to Firebase and wrote test data.");
-  })
-  .catch((error) => {
-    console.error("Error writing to Firebase: ", error);
-  });
-
-// Add Customer Form Submission
-const addCustomerForm = document.getElementById('addCustomerForm');
-addCustomerForm.addEventListener('submit', function (e) {
+// Add Customer Form
+document.getElementById('addCustomerForm').addEventListener('submit', async function (e) {
   e.preventDefault();
   const name = document.getElementById('customerName').value;
   const phone = document.getElementById('customerPhone').value;
   const address = document.getElementById('customerAddress').value;
 
-  const newCustomerRef = push(ref(db, 'customers'));
-  set(newCustomerRef, { name, phone, address })
-    .then(() => {
-      alert('Customer added successfully!');
-      addCustomerForm.reset();
-      fetchCustomers(); // Ensure dropdown updates immediately
-    })
-    .catch(error => console.error("Error: ", error));
+  try {
+    const docRef = await addDoc(collection(db, "customers"), {
+      name: name,
+      phone: phone,
+      address: address
+    });
+    console.log("Customer added with ID: ", docRef.id);
+    alert('Customer added successfully!');
+    updateCustomerList();
+    document.getElementById('addCustomerForm').reset();
+  } catch (e) {
+    console.error("Error adding customer: ", e);
+    alert('Error adding customer!');
+  }
 });
 
-// Fetch Customers and Update Dropdown
-function fetchCustomers() {
-  const customerList = document.getElementById('customerList');
-  customerList.innerHTML = '<option value="">Select Customer</option>';
-
-  onValue(ref(db, 'customers'), (snapshot) => {
-    customerList.innerHTML = '<option value="">Select Customer</option>';
-    snapshot.forEach(childSnapshot => {
-      const customer = childSnapshot.val();
-      const option = document.createElement('option');
-      option.value = childSnapshot.key;
-      option.textContent = customer.name;
-      customerList.appendChild(option);
-    });
-  }, {
-    onlyOnce: true // Ensure it fetches only once and updates
-  });
-}
-
-// Milk Collection Form Submission
-const milkCollectionForm = document.getElementById('milkCollectionForm');
-milkCollectionForm.addEventListener('submit', function (e) {
+// Milk Collection Form
+document.getElementById('milkCollectionForm').addEventListener('submit', async function (e) {
   e.preventDefault();
   const customerId = document.getElementById('customerList').value;
   const quantity = parseFloat(document.getElementById('milkQuantity').value);
   const fatContent = parseFloat(document.getElementById('fatContent').value);
-  const payment = calculatePayment(quantity, fatContent);
 
-  if (!customerId) {
-    alert('Please select a valid customer.');
-    return;
+  try {
+    const payment = calculatePayment(quantity, fatContent);
+    const docRef = await addDoc(collection(db, "milkRecords"), {
+      customerId: customerId,
+      quantity: quantity,
+      fatContent: fatContent,
+      payment: payment
+    });
+    console.log("Milk record added with ID: ", docRef.id);
+    alert('Milk recorded successfully!');
+    updateCustomerTable();
+    document.getElementById('milkCollectionForm').reset();
+  } catch (e) {
+    console.error("Error recording milk: ", e);
+    alert('Error recording milk!');
   }
-
-  const newMilkRecordRef = push(ref(db, 'milkRecords'));
-  set(newMilkRecordRef, { customerId, quantity, fatContent, payment })
-    .then(() => {
-      alert('Milk recorded successfully!');
-      milkCollectionForm.reset();
-      fetchMilkRecords();
-    })
-    .catch(error => console.error("Error: ", error));
 });
 
-// Fetch and Display Milk Records on Page Load
-function fetchMilkRecords() {
-  const tableBody = document.querySelector('#customerTable tbody');
-  tableBody.innerHTML = '';
+// Update Customer List in Dropdown
+async function updateCustomerList() {
+  const customerList = document.getElementById('customerList');
+  customerList.innerHTML = '<option value="">Select Customer</option>';
 
-  onValue(ref(db, 'milkRecords'), (snapshot) => {
-    tableBody.innerHTML = '';
-    snapshot.forEach(childSnapshot => {
-      const record = childSnapshot.val();
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${record.customerId}</td>
-        <td>${record.quantity}</td>
-        <td>${record.fatContent}</td>
-        <td>${record.payment.toFixed(2)}</td>
-      `;
-      tableBody.appendChild(row);
-    });
+  const querySnapshot = await getDocs(collection(db, "customers"));
+  querySnapshot.forEach((doc) => {
+    const option = document.createElement('option');
+    option.value = doc.id;
+    option.textContent = doc.data().name;
+    customerList.appendChild(option);
   });
 }
 
-// Fetch and Display Data on Page Load
-document.addEventListener("DOMContentLoaded", function () {
-  fetchCustomers();
-  fetchMilkRecords();
-});
+// Update Customer Table
+async function updateCustomerTable() {
+  const tableBody = document.querySelector('#customerTable tbody');
+  tableBody.innerHTML = '';
+
+  const querySnapshot = await getDocs(collection(db, "milkRecords"));
+  querySnapshot.forEach(async (doc) => {
+    const record = doc.data();
+    const customerDoc = await getDoc(doc(db, "customers", record.customerId));
+    const customer = customerDoc.data();
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${customer.name}</td>
+      <td>${customer.phone}</td>
+      <td>${customer.address}</td>
+      <td>${record.quantity}</td>
+      <td>${record.fatContent}</td>
+      <td>${record.payment.toFixed(2)}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
 
 // Payment Calculation Logic
 function calculatePayment(quantity, fatContent) {
@@ -121,3 +109,7 @@ function calculatePayment(quantity, fatContent) {
   const fatMultiplier = fatContent / 100; // Adjust payment based on fat content
   return quantity * baseRate * (1 + fatMultiplier);
 }
+
+// Initial load
+updateCustomerList();
+updateCustomerTable();
