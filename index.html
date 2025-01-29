@@ -28,8 +28,8 @@
         <select id="customerList" required>
           <option value="">Select Customer</option>
         </select>
-        <input type="decimal" id="milkQuantity" placeholder="Milk Quantity (Liters)" required>
-        <input type="decimal" id="fatContent" placeholder="Fat Content (%)" required>
+        <input type="number" id="milkQuantity" placeholder="Milk Quantity (Liters)" required>
+        <input type="number" id="fatContent" placeholder="Fat Content (%)" required>
         <button type="submit">Record Milk</button>
       </form>
     </div>
@@ -55,6 +55,11 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Firebase SDK -->
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.x.x/firebase-database.js"></script>
+  
+  <!-- Main Script File -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>
