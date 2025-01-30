@@ -1,106 +1,111 @@
-// Import Firebase and Firestore
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
 
-// Firebase Configuration
+// Firebase Configuration (REPLACE WITH YOUR ACTUAL CONFIG)
 const firebaseConfig = {
-  apiKey: "AIzaSyD0kXfsVqMKDmpqRI8fLmHVbNSDGR7jZBw",
-  authDomain: "krishna-dairy-products-1b024.firebaseapp.com",
-  projectId: "krishna-dairy-products-1b024",
-  storageBucket: "krishna-dairy-products-1b024.appspot.com",
-  messagingSenderId: "38817783657",
-  appId: "1:38817783657:web:5a86fa2694d3bee48ee7f8",
-  measurementId: "G-9LG57Q29Y4"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID" // Optional
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Add Customer Form
 async function addCustomer(e) {
-  e.preventDefault();
-  const name = document.getElementById('customerName').value;
-  const phone = document.getElementById('customerPhone').value;
-  const address = document.getElementById('customerAddress').value;
+    e.preventDefault();
+    const name = document.getElementById('customerName').value;
+    const phone = document.getElementById('customerPhone').value;
+    const address = document.getElementById('customerAddress').value;
 
-  try {
-    const docRef = await addDoc(collection(db, "customers"), {
-      name, phone, address
-    });
-    alert('Customer added successfully!');
-    updateCustomerList();
-  } catch (e) {
-    alert('Error adding customer!');
-  }
+    try {
+        await addDoc(collection(db, "customers"), { name, phone, address });
+        alert('Customer added successfully!');
+        document.getElementById('addCustomerForm').reset(); // Clear form
+        updateCustomerList();
+    } catch (error) {
+        console.error("Error adding customer: ", error); // Log the error for debugging
+        alert('Error adding customer!');
+    }
 }
 
 document.getElementById('addCustomerForm').addEventListener('submit', addCustomer);
 
-// Milk Collection Form
 async function recordMilk(e) {
-  e.preventDefault();
-  const customerId = document.getElementById('customerList').value;
-  const quantity = parseFloat(document.getElementById('milkQuantity').value);
-  const fatContent = parseFloat(document.getElementById('fatContent').value);
+    e.preventDefault();
+    const customerId = document.getElementById('customerList').value;
+    const quantity = parseFloat(document.getElementById('milkQuantity').value);
+    const fatContent = parseFloat(document.getElementById('fatContent').value);
 
-  try {
-    const payment = calculatePayment(quantity, fatContent);
-    await addDoc(collection(db, "milkRecords"), {
-      customerId, quantity, fatContent, payment
-    });
-    alert('Milk recorded successfully!');
-    updateCustomerTable();
-  } catch (e) {
-    alert('Error recording milk!');
-  }
+    try {
+        const payment = calculatePayment(quantity, fatContent);
+        await addDoc(collection(db, "milkRecords"), { customerId, quantity, fatContent, payment });
+        alert('Milk recorded successfully!');
+        document.getElementById('milkCollectionForm').reset(); // Clear form
+        updateCustomerTable();
+    } catch (error) {
+        console.error("Error recording milk: ", error); // Log the error
+        alert('Error recording milk!');
+    }
 }
 
 document.getElementById('milkCollectionForm').addEventListener('submit', recordMilk);
 
-// Update Customer List
 async function updateCustomerList() {
-  const customerList = document.getElementById('customerList');
-  customerList.innerHTML = '<option value="">Select Customer</option>';
-  const querySnapshot = await getDocs(collection(db, "customers"));
-  querySnapshot.forEach((doc) => {
-    const option = document.createElement('option');
-    option.value = doc.id;
-    option.textContent = doc.data().name;
-    customerList.appendChild(option);
-  });
+    const customerList = document.getElementById('customerList');
+    customerList.innerHTML = '<option value="">Select Customer</option>';
+    const querySnapshot = await getDocs(collection(db, "customers"));
+    querySnapshot.forEach((doc) => {
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = doc.data().name;
+        customerList.appendChild(option);
+    });
 }
 
-// Update Customer Table
 async function updateCustomerTable() {
-  const tableBody = document.querySelector('#customerTable tbody');
-  tableBody.innerHTML = '';
-  const querySnapshot = await getDocs(collection(db, "milkRecords"));
-  for (const docSnap of querySnapshot.docs) {
-    const record = docSnap.data();
-    const customerRef = doc(db, "customers", record.customerId);
-    const customerDoc = await getDoc(customerRef);
-    const customer = customerDoc.data();
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${customer.name}</td>
-      <td>${customer.phone}</td>
-      <td>${customer.address}</td>
-      <td>${record.quantity}</td>
-      <td>${record.fatContent}</td>
-      <td>${record.payment.toFixed(2)}</td>
-    `;
-    tableBody.appendChild(row);
-  }
+    const tableBody = document.querySelector('#customerTable tbody');
+    tableBody.innerHTML = '';
+
+    try {
+        const milkRecordsSnapshot = await getDocs(collection(db, "milkRecords"));
+
+        for (const docSnap of milkRecordsSnapshot.docs) {
+            const record = docSnap.data();
+            const customerRef = doc(db, "customers", record.customerId);
+            const customerDoc = await getDoc(customerRef);
+
+            if (customerDoc.exists()) { // Check if the customer document exists
+                const customer = customerDoc.data();
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${customer.name}</td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.address}</td>
+                    <td>${record.quantity}</td>
+                    <td>${record.fatContent}</td>
+                    <td>${record.payment.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+            } else {
+                console.error("Customer document not found for ID:", record.customerId);
+                // Handle the case where the customer document is missing
+            }
+        }
+    } catch (error) {
+        console.error("Error updating customer table:", error);
+    }
 }
 
-// Payment Calculation
+
+
 function calculatePayment(quantity, fatContent) {
-  const baseRate = 50;
-  return quantity * baseRate * (1 + fatContent / 100);
+    const baseRate = 50;
+    return quantity * baseRate * (1 + fatContent / 100);
 }
 
-// Initial Load
 updateCustomerList();
 updateCustomerTable();
-
