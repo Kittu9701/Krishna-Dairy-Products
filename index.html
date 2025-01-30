@@ -1,1 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krishna Dairy Products Pvt. Ltd.</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Add Firebase SDKs -->
+  <script type="module" src="script.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Krishna Dairy Products Pvt. Ltd.</h1>
 
+    <!-- Add Customer Form -->
+    <div class="form-section">
+      <h2>Add Customer</h2>
+      <form id="addCustomerForm">
+        <input type="text" id="customerName" placeholder="Customer Name" required>
+        <input type="text" id="customerPhone" placeholder="Phone Number" required>
+        <input type="text" id="customerAddress" placeholder="Address" required>
+        <button type="submit">Add Customer</button>
+      </form>
+    </div>
+
+    <!-- Milk Collection Form -->
+    <div class="form-section">
+      <h2>Milk Collection</h2>
+      <form id="milkCollectionForm">
+        <select id="customerList" required>
+          <option value="">Select Customer</option>
+        </select>
+        <input type="decimal" id="milkQuantity" placeholder="Milk Quantity (Liters)" required>
+        <input type="decimal" id="fatContent" placeholder="Fat Content (%)" required>
+        <button type="submit">Record Milk</button>
+      </form>
+    </div>
+
+    <!-- Display Data -->
+    <div class="data-section">
+      <h2>Customer Data</h2>
+      <table id="customerTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Milk (Liters)</th>
+            <th>Fat (%)</th>
+            <th>Payment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be added dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
