@@ -24,17 +24,22 @@ document.getElementById('addCustomerForm').addEventListener('submit', async func
   const phone = document.getElementById('customerPhone').value;
   const address = document.getElementById('customerAddress').value;
 
+  // Debugging: Log the form data
+  console.log("Form submitted with data:", { name, phone, address });
+
   try {
     const docRef = await addDoc(collection(db, "customers"), {
       name: name,
       phone: phone,
       address: address
     });
+    // Debugging: Log the document ID
     console.log("Customer added with ID: ", docRef.id);
     alert('Customer added successfully!');
     updateCustomerList();
     document.getElementById('addCustomerForm').reset();
   } catch (e) {
+    // Debugging: Log the error
     console.error("Error adding customer: ", e.message);
     alert('Error adding customer!');
   }
