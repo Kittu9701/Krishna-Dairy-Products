@@ -1,6 +1,6 @@
 // Import Firebase and Firestore
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs, getDoc } from "firebase/firestore";
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -35,7 +35,7 @@ document.getElementById('addCustomerForm').addEventListener('submit', async func
     updateCustomerList();
     document.getElementById('addCustomerForm').reset();
   } catch (e) {
-    console.error("Error adding customer: ", e);
+    console.error("Error adding customer: ", e.message);
     alert('Error adding customer!');
   }
 });
@@ -60,7 +60,7 @@ document.getElementById('milkCollectionForm').addEventListener('submit', async f
     updateCustomerTable();
     document.getElementById('milkCollectionForm').reset();
   } catch (e) {
-    console.error("Error recording milk: ", e);
+    console.error("Error recording milk: ", e.message);
     alert('Error recording milk!');
   }
 });
